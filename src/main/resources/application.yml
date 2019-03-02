@@ -1,0 +1,4 @@
+spring:
+  # dev环境
+  profiles:
+    active: dev

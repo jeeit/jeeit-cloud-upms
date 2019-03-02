@@ -1,0 +1,134 @@
+server:
+  port: 8763
+
+spring:
+  application:
+    name: jeeit-cloud-upms
+  # redis 相关
+  redis:
+    password:
+    host: 127.0.0.1
+  # dev环境
+  profiles:
+    active: pred
+  # 数据源
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: 123456
+    url: jdbc:mysql://127.0.0.1:3306/jeeit?characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false
+
+
+
+# 注册中心配置
+eureka:
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:8761/eureka/
+
+
+## spring security 配置
+security:
+  oauth2:
+    resource:
+      token-info-uri: ${security.auth.server}/check_token
+    client:
+      client-id: jeeit
+      client-secret: jeeit
+      scope: server
+  auth:
+    server: http://localhost:8769/auth/oauth
+
+
+
+
+
+
+# swagger相关配置,覆盖全局配置
+swagger:
+  authorization:
+    authorization-scope-list:
+    - scope: 'server'
+      description: 'server all'
+    - scope: 'read'
+      description: 'read all'
+    - scope: 'write'
+      description: 'access all'
+
+
+#mybaits-plus配置，修改主键类型，mapper.xml、type 别名等
+mybatis-plus:
+  mapper-locations: classpath:/mapper/*Mapper.xml
+  global-config:
+    #主键类型  0:"数据库ID自增", 1:"用户输入ID",2:"全局唯一ID (数字类型唯一ID)", 3:"全局唯一ID UUID";
+    id-type: 0
+    #字段策略 0:"忽略判断",1:"非 NULL 判断"),2:"非空判断"
+    field-strategy: 1
+    #驼峰下划线转换
+    db-column-underline: true
+    #刷新mapper 调试神器
+    refresh-mapper: false
+    # 逻辑删除字段
+    logic-delete-value: 1
+    logic-not-delete-value: 0
+    #自定义SQL注入器
+    sql-injector: com.baomidou.mybatisplus.mapper.LogicSqlInjector
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: true
+
+#请求处理的超时时间
+ribbon:
+  ReadTimeout: 10000
+  ConnectTimeout: 10000
+
+
+
+# feign 配置 -----------------------------------------------------------
+feign:
+  hystrix:
+    enabled: true
+  okhttp:
+    enabled: true
+  httpclient:
+    enabled: false
+  client:
+    config:
+      feignName:
+        connectTimeout: 10000
+        readTimeout: 10000
+  compression:
+    request:
+      enabled: true
+    response:
+      enabled: true
+
+# hytrix -------------------------------------------
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          strategy: SEMAPHORE  #隔离策略，有THREAD和SEMAPHORE THREAD - 它在单独的线程上执行，并发请求受线程池中的线程数量的限制 SEMAPHORE - 它在调用线程上执行，并发请求受到信号量计数的限制
+          thread:
+            timeoutInMilliseconds: 50000 #被该调用方的所有方法的超时时间都是该值，优先级低于下边的指定配置
+    fallbackcmd:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 50000 #被该调用方的指定方法（fallbackcmd方法名）的超时时间是该值
+  hystrix:
+    threadpool:
+      default:
+        coreSize: 1000000000 #线程池核心线程数
+
+# 加解密根密码
+jasypt:
+  encryptor:
+    password: jeeit #根密码
+
+
